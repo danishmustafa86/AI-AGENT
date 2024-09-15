@@ -151,6 +151,16 @@ def linkedin_job_search(job_title):
     else:
         return []
 
+# Function to get job requirements by fetching details from Google Custom Search API
+def get_job_requirements(job_title):
+    search_query = f"{job_title} job requirements"
+    response = google_search(search_query)
+    job_details = []
+    if response:
+        for item in response.get('items', []):
+            job_details.append({'title': item['title'], 'link': item['link'], 'snippet': item['snippet']})
+    return job_details
+
 # Streamlit UI for recommendations
 st.markdown('<h1 class="centered-header">Tech Jobs Recommender</h1>', unsafe_allow_html=True)
 
@@ -187,12 +197,25 @@ if st.sidebar.button('Get Personalized Recommendations'):
     else:
         st.write("Please enter skills and/or location to get personalized job recommendations.")
 
-# Button to summarize job description using LLaMA API
+# Define a mapping from full language names to language codes
+LANGUAGE_MAPPING = {
+    'English': 'en',
+    'Spanish': 'es',
+    'French': 'fr',
+    'German': 'de',
+    'Arabic': 'ar'
+}
+
+# Update the language selection dropdown to use full language names
+language_name = st.selectbox("Select Language", list(LANGUAGE_MAPPING.keys()))
+
+# Get the language code from the selected language name
+language_code = LANGUAGE_MAPPING[language_name]
+
 # Button to translate job description
-language = st.selectbox("Select Language", ['en', 'es', 'fr', 'de', 'ar'])
 if st.button('Translate Job Description'):
     job_description = df1[df1['jobtitle'] == selected_job]['jobdescription'].iloc[0]
-    translated_text = translate_description(job_description, language)
+    translated_text = translate_description(job_description, language_code)
     st.write(translated_text)
 
 # LinkedIn Job Search Section
@@ -200,25 +223,28 @@ st.markdown(
     """
     <h2 style="display: flex; align-items: center;">
         Search LinkedIn Jobs
-        <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" class="linkedin-logo" alt="LinkedIn Logo"/>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" alt="LinkedIn Logo" class="linkedin-logo">
     </h2>
     """,
     unsafe_allow_html=True
 )
 
-# User input for specific job title
-specific_job_title = st.text_input("Enter the specific job title you are looking for")
-
-# Button to search LinkedIn jobs
 if st.button('Search LinkedIn Jobs'):
-    if specific_job_title:
-        linkedin_results = linkedin_job_search(specific_job_title)
-        
-        if linkedin_results:
-            st.subheader(f"LinkedIn job results for '{specific_job_title}':")
-            for result in linkedin_results:
-                st.write(f"[{result['title']}]({result['link']})")
-        else:
-            st.write("No LinkedIn job results found. Please try different job titles.")
+    linkedin_results = linkedin_job_search(selected_job)
+    if linkedin_results:
+        st.subheader(f"LinkedIn Jobs for '{selected_job}':")
+        for result in linkedin_results:
+            st.write(f"[{result['title']}]({result['link']})")
     else:
-        st.write("Please enter a job title to search LinkedIn.")
+        st.write("No LinkedIn job results found for your input.")
+
+# Job requirements feature
+st.markdown("### Job Requirements")
+if st.button('Get Job Requirements'):
+    job_requirements = get_job_requirements(selected_job)
+    if job_requirements:
+        for requirement in job_requirements:
+            st.write(f"[{requirement['title']}]({requirement['link']})")
+            st.write(requirement['snippet'])
+    else:
+        st.write("No job requirements found for this job.")
