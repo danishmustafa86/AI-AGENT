@@ -18,12 +18,15 @@ GOOGLE_CX = ""  # Replace with your custom search engine ID
 st.markdown(
     """
     <style>
-    /* Set background color to white */
+    .centered-header {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #4A90E2;
+    }
     body {
         background: white;
     }
-    
-    /* Style for buttons */
     .stButton>button {
         background-color: none;
         color: white;
@@ -34,21 +37,22 @@ st.markdown(
         transition: background-color 0.3s ease, box-shadow 0.3s ease;
         box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.2);
     }
-    
-    /* Hover effect for buttons */
     .stButton>button:hover {
         background-color: #0096c7;
         color: white;
         box-shadow: 4px 8px 16px rgba(0, 0, 0, 0.2);
     }
-    /* Shadows for other elements like headers */
     .stTextInput, .stSelectbox {
         box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
     }
-    
-    /* Padding for the main app content */
     .main {
         padding: 20px;
+    }
+    .linkedin-logo {
+        width: 30px;
+        height: 30px;
+        vertical-align: middle;
+        margin-left: 10px;
     }
     </style>
     """,
@@ -78,6 +82,10 @@ indices = pd.Series(df1.index, index=df1['jobtitle']).drop_duplicates()
 
 # Function to get recommendations based on job title
 def get_recommendations(title, cosine_sim=cosine_sim):
+    # Check if the title exists in indices
+    if title not in indices:
+        return []
+    
     idx = indices[title]
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
@@ -133,8 +141,18 @@ def google_job_search(query, user_location):
     else:
         return []
 
+# Function to search LinkedIn jobs using Google Custom Search API
+def linkedin_job_search(job_title):
+    search_query = f"{job_title} jobs site:linkedin.com"
+    url = f"https://www.googleapis.com/customsearch/v1?q={search_query}&key={GOOGLE_API_KEY}&cx={GOOGLE_CX}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json().get('items', [])
+    else:
+        return []
+
 # Streamlit UI for recommendations
-st.header('Tech Jobs Recommender')
+st.markdown('<h1 class="centered-header">Tech Jobs Recommender</h1>', unsafe_allow_html=True)
 
 # Job title dropdown
 job_list = df1['jobtitle'].unique()
@@ -143,8 +161,11 @@ selected_job = st.selectbox("Type or select a job from the dropdown", job_list)
 # Button to show recommendations
 if st.button('Show Recommendation'):
     recommended_job_names = get_recommendations(selected_job)
-    for job in recommended_job_names:
-        st.subheader(job)
+    if recommended_job_names:
+        for job in recommended_job_names:
+            st.subheader(job)
+    else:
+        st.warning("No recommendations found for this job title.")
 
 # Sidebar for personalized recommendations using Google Custom Search API
 st.sidebar.header('Personalize Your Search')
@@ -174,9 +195,30 @@ if st.button('Translate Job Description'):
     translated_text = translate_description(job_description, language)
     st.write(translated_text)
 
-# Feedback option
-feedback = st.radio("Was this recommendation helpful?", ('Yes', 'No'))
-if feedback == 'Yes':
-    st.success("Thanks for your feedback!")
-else:
-    st.warning("We'll work to improve our recommendations.")
+# LinkedIn Job Search Section
+st.markdown(
+    """
+    <h2 style="display: flex; align-items: center;">
+        Search LinkedIn Jobs
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" class="linkedin-logo" alt="LinkedIn Logo"/>
+    </h2>
+    """,
+    unsafe_allow_html=True
+)
+
+# User input for specific job title
+specific_job_title = st.text_input("Enter the specific job title you are looking for")
+
+# Button to search LinkedIn jobs
+if st.button('Search LinkedIn Jobs'):
+    if specific_job_title:
+        linkedin_results = linkedin_job_search(specific_job_title)
+        
+        if linkedin_results:
+            st.subheader(f"LinkedIn job results for '{specific_job_title}':")
+            for result in linkedin_results:
+                st.write(f"[{result['title']}]({result['link']})")
+        else:
+            st.write("No LinkedIn job results found. Please try different job titles.")
+    else:
+        st.write("Please enter a job title to search LinkedIn.")
