@@ -1,6 +1,6 @@
 # Tech Jobs Recommender
 
-This Streamlit app provides job recommendations based on job titles, job description summarization using LLaMA, translation of job descriptions, and job search functionality via Google Custom Search API. It also supports LinkedIn job searches and text-to-speech synthesis.
+This Streamlit app provides job recommendations based on job titles, job description summarization using LLaMA, translation of job descriptions, and job search functionality via Google Custom Search API. It also supports LinkedIn job searches when user gives his/her skill and location.
 
 ## Features
 
