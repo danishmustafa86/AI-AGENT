@@ -8,7 +8,7 @@ This Streamlit app provides job recommendations based on job titles, job descrip
 - **Job Description Summarization**: Summarize job descriptions using LLaMA API.
 - **Translation**: Translate job descriptions into multiple languages using Google Translator.
 - **Job Search**: Search for jobs using Google Custom Search API and LinkedIn.
-- **Text-to-Speech**: Convert text to speech using Google Cloud Text-to-Speech API.
+- **Search Linkedin Jobs**: You can alos search linkedin jobs just by giving your skill and locations.
 
 ## Installation
 
