@@ -199,11 +199,11 @@ if st.sidebar.button('Get Personalized Recommendations'):
 
 # Define a mapping from full language names to language codes
 LANGUAGE_MAPPING = {
-    'English': 'en',
-    'Spanish': 'es',
-    'French': 'fr',
-    'German': 'de',
-    'Arabic': 'ar'
+    'English': 'English',
+    'Spanish': 'Spanish',
+    'French': 'French',
+    'German': 'German',
+    'Arabic': 'Arabic'
 }
 
 # Update the language selection dropdown to use full language names
